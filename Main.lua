@@ -1,9 +1,6 @@
 PVPInfo = LibStub("AceAddon-3.0"):NewAddon("PVPInfo", "AceConsole-3.0", "AceEvent-3.0")
 -- local Module = PVPInfo:NewModule("Config", "AceConsole-3.0")
 local L = LibStub("AceLocale-3.0"):GetLocale("PVPInfo")
-local Input
-local Channel
-local PVPScore_Frame = CreateFrame("Frame")
 
 local options = {
     name = "|cffDDA0DDPVPInfo|r",
