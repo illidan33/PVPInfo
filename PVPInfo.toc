@@ -1,0 +1,19 @@
+## Interface: 80000
+## Version: 1.0.0
+## Title: PVP INFO
+## Author: illidan33
+## Notes: Displays everyone's PVP information.
+## SavedVariables: PVPInfoDB
+## OptionalDeps: Ace3, LibStub
+## X-Embeds: Ace3
+
+#@no-lib-strip@
+embeds.xml
+#@end-no-lib-strip@
+
+Locales\enUS.lua
+
+#Options.lua
+Main.lua
+#Core.lua
+#Base.lua
