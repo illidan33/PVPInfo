@@ -11,9 +11,6 @@
 embeds.xml
 #@end-no-lib-strip@
 
-Locales\enUS.lua
+Locales\locale.xml
 
-#Options.lua
 Main.lua
-#Core.lua
-#Base.lua

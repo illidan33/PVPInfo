@@ -1,7 +1,5 @@
 local L = LibStub("AceLocale-3.0"):NewLocale("PVPInfo", "enUS", true)
 
-if not L then return end
-
 -- config description
 L["execute"] = "recover default config"
 L["showDuel"] = "show duel"
@@ -9,7 +7,7 @@ L["toggleDuel"] = "Toggles the display of Duel's the information."
 L["showArena"] = "show arena"
 L["toggleArena"] = "Toggles the display of Arena's information."
 L["showRatingBattleground"] = "show rating battleground"
-L["toggleRating"] = "Toggles the display of Rating Battleground's information."
+L["toggleRatingBattleground"] = "Toggles the display of Rating Battleground's information."
 
 L["textLevel"] = "Level"
 L["textDule"] = "Dule"
@@ -21,8 +19,9 @@ L["textArenaWinRate"] = "Win Rate"
 L["textRatingBattleground"] = "Rating Battleground"
 L["textRatingBattlegroundWinLose"] = "Win/Lose"
 L["textRatingBattlegroundWinRate"] = "Win Rate"
+L["highestArenaRating"] = "Highest Arena Rating"
 L["textAllKills"] = "All Kills"
-L["pvpScore"] = "PVP Score"
+L["pvpScore"] = "PVP Total Score"
 
 -- command description
 L["default"] = "open config GUI"
