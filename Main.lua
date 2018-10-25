@@ -43,7 +43,18 @@ local options = {
                 PVPInfo.db.profile.showArena = value or nil
             end,
         },
-        showRating = {
+        showBattleground = {
+            type = "toggle",
+            name = L["showBattleground"],
+            desc = L["toggleBattleground"],
+            get = function(info)
+                return PVPInfo.db.profile.showBattleground
+            end,
+            set = function(info, value)
+                PVPInfo.db.profile.Battleground = value or nil
+            end,
+        },
+        showRatingBattleground = {
             type = "toggle",
             name = L["showRatingBattleground"],
             desc = L["toggleRatingBattleground"],
@@ -54,6 +65,28 @@ local options = {
                 PVPInfo.db.profile.showRatingBattleground = value or nil
             end,
         },
+        showKill = {
+            type = "toggle",
+            name = L["showKill"],
+            desc = L["toggleKill"],
+            get = function(info)
+                return PVPInfo.db.profile.showKill
+            end,
+            set = function(info, value)
+                PVPInfo.db.profile.showKill = value or nil
+            end,
+        },
+        showKill = {
+            type = "toggle",
+            name = L["showHighArenaLevel"],
+            desc = L["toggleHighArenaLevel"],
+            get = function(info)
+                return PVPInfo.db.profile.showHighArenaLevel
+            end,
+            set = function(info, value)
+                PVPInfo.db.profile.showHighArenaLevel = value or nil
+            end,
+        },
     },
 }
 
@@ -61,30 +94,39 @@ local defaults = {
     profile = {
         showDuel = true,
         showArena = false,
+        showBattleground = false,
         showRatingBattleground = false,
+        showKills = false,
+        showHighArenaLevel = false,
     },
 }
 
 function PVPInfo:OnInitialize()
     -- Called when the addon is loaded
     self.db = LibStub("AceDB-3.0"):New("PVPInfoDB", defaults, true)
-
     LibStub("AceConfig-3.0"):RegisterOptionsTable(appName, options)
-    self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions(appName, "PVPInfo")
+    self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions(appName, appName)
+
     self:RegisterChatCommand("pi", "ChatCommand")
     self:RegisterChatCommand("pvpinfo", "ShowConfig")
     self:RegisterChatCommand("pis", "MessageToSay")
     self:RegisterChatCommand("pip", "MessageToPrint")
+    self:RegisterChatCommand("pir", "MessageToRaid")
 end
 
 function PVPInfo:OnEnable()
     -- Called when the addon is enabled
     self:RegisterEvent("ZONE_CHANGED")
+    self:RegisterEvent("PLAYER_TARGET_CHANGED")
 end
 
 function PVPInfo:ZONE_CHANGED()
     self:Print(GetSubZoneText())
-    DisplayStarOfTargetOnNameBar()
+end
+
+function PVPInfo:PLAYER_TARGET_CHANGED()
+    self:Print("PLAYER_TARGET_CHANGED")
+    DisplayStarOnNameBar()
 end
 
 function PVPInfo:ShowConfig()
@@ -121,7 +163,7 @@ function CalculateScore()
     --RequestInspectHonorData() --请求该目标PVP数据
     SetAchievementComparisonUnit(target) --设置要比较的单位
     PVPInfoFrame:RegisterEvent("INSPECT_ACHIEVEMENT_READY")
-    PVPInfoFrame:SetScript("OnEvent",function()
+    PVPInfoFrame:SetScript("OnEvent", function()
 
         scoreTable["unitName"], scoreTable["unitRealName"] = UnitName(target)
         scoreTable["unitLevel"] = UnitLevel(target)
@@ -151,14 +193,12 @@ function CalculateScore()
         if duelSum == 0 then
             duelWinRate = 0
         else
-            duelWinRate = duelWin / duelSum
+            duelWinRate = (duelWin / duelSum) * 100
         end
 
-        local duelScore = 0
-        if duelSum < 100 then
-            duelScore = duelWinRate * 100 / 10
-        else
-            duelScore = duelWinRate * 100
+        local duelScore = math.ceil(duelWinRate / 2 + (duelSum / 5000 * 100) / 2)
+        if duelScore > 100 then
+            duelScore = 100
         end
 
         -- Arena -- 竞技场
@@ -180,75 +220,43 @@ function CalculateScore()
         if arenaSum == 0 then
             arenaWinRate = 0
         else
-            arenaWinRate = arenaWin / arenaSum
+            arenaWinRate = (arenaWin / arenaSum) * 100
         end
 
-        local arenaRating_3v3 = GetComparisonStatistic(595)
-        if arenaRating_3v3 == "--" then
-            arenaRating_3v3 = 0
-        end
-
-        local arenaRating_2v2 = GetComparisonStatistic(370)
-        if arenaRating_2v2 == "--" then
-            arenaRating_2v2 = 0
-        end
-
-        local arenaScore = 0
-        if arenaSum < 100 then
-            arenaScore = arenaWinRate * 100 / 10
-        else
-            arenaScore = arenaWinRate * 100
+        local arenaScore = math.ceil(arenaWinRate / 2 + (arenaSum / 5000 * 100) / 2)
+        if arenaScore > 100 then
+            arenaScore = 100
         end
 
         -- Rating Battleground -- 评级战场
-        local RatingBattlegroundSum = GetComparisonStatistic(5692)
-        if RatingBattlegroundSum == "--" then
-            RatingBattlegroundSum = 0
+        local ratingBattlegroundSum = GetComparisonStatistic(5692)
+        if ratingBattlegroundSum == "--" then
+            ratingBattlegroundSum = 0
         else
-            RatingBattlegroundSum = tonumber(RatingBattlegroundSum)
+            ratingBattlegroundSum = tonumber(ratingBattlegroundSum)
         end
 
-        local RatingBattlegroundWin = GetComparisonStatistic(5694)
-        if RatingBattlegroundWin == "--" then
-            RatingBattlegroundWin = 0
+        local ratingBattlegroundWin = GetComparisonStatistic(5694)
+        if ratingBattlegroundWin == "--" then
+            ratingBattlegroundWin = 0
         end
 
-        local RatingBattlegroundLose = RatingBattlegroundSum - RatingBattlegroundWin
+        local ratingBattlegroundLose = ratingBattlegroundSum - ratingBattlegroundWin
 
         local ratingBattlegroundWinRate = 0
-        if RatingBattlegroundSum == 0 then
+        if ratingBattlegroundSum == 0 then
             ratingBattlegroundWinRate = 0
         else
-            ratingBattlegroundWinRate = RatingBattlegroundWin / RatingBattlegroundSum
+            ratingBattlegroundWinRate = ratingBattlegroundWin / ratingBattlegroundSum
         end
 
-        local RatingBattlegroundScore = 0
-        if RatingBattlegroundSum < 100 then
-            RatingBattlegroundScore = ratingBattlegroundWinRate * 100 / 10
-        else
-            RatingBattlegroundScore = ratingBattlegroundWinRate * 100
+        local ratingBattlegroundScore = math.ceil(ratingBattlegroundWinRate / 2 + (ratingBattlegroundSum / 1000 * 100) / 2)
+        if ratingBattlegroundScore > 100 then
+            ratingBattlegroundScore = 100
         end
-
-        -- Kills -- 击杀总数
-        local Honorable_Kills = GetComparisonStatistic(588)
-        if Honorable_Kills == "--" then
-            Honorable_Kills = 0
-        end
-
-        local Arena_Kills = GetComparisonStatistic(1490)
-        if Arena_Kills == "--" then
-            Arena_Kills = 0
-        end
-
-        local Battleground_Kills = GetComparisonStatistic(1491)
-        if Battleground_Kills == "--" then
-            Battleground_Kills = 0
-        end
-
-        local allKills = Honorable_Kills + Arena_Kills + Battleground_Kills
 
         -- Total Score -- 总评分
-        local totalScore = duelScore + arenaScore + RatingBattlegroundScore
+        local totalScore = duelScore + arenaScore + ratingBattlegroundScore
 
         local pvpStar = ""
         if totalScore >= 250 then
@@ -284,20 +292,80 @@ function CalculateScore()
         scoreTable["arenaSum"] = arenaSum
         scoreTable["arenaWin"] = arenaWin
         scoreTable["arenaLose"] = arenaLose
-        scoreTable["arenaRating_2v2"] = arenaRating_2v2
-        scoreTable["arenaRating_3v3"] = arenaRating_3v3
         scoreTable["arenaWinRate"] = arenaWinRate
         scoreTable["arenaScore"] = arenaScore
 
-        scoreTable["ratingBattlegroundSum"] = RatingBattlegroundSum
-        scoreTable["ratingBattlegroundWin"] = RatingBattlegroundWin
-        scoreTable["ratingBattlegroundLose"] = RatingBattlegroundLose
+        scoreTable["ratingBattlegroundSum"] = ratingBattlegroundSum
+        scoreTable["ratingBattlegroundWin"] = ratingBattlegroundWin
+        scoreTable["ratingBattlegroundLose"] = ratingBattlegroundLose
         scoreTable["ratingBattlegroundWinRate"] = ratingBattlegroundWinRate
-        scoreTable["ratingBattlegroundScore"] = RatingBattlegroundScore
+        scoreTable["ratingBattlegroundScore"] = ratingBattlegroundScore
 
         scoreTable["totalScore"] = totalScore
         scoreTable["pvpStar"] = pvpStar
-        scoreTable["allKills"] = allKills
+
+        if PVPInfo.db.profile.showHighArenaLevel then
+            local arenaRating_3v3 = GetComparisonStatistic(595)
+            if arenaRating_3v3 == "--" then
+                arenaRating_3v3 = 0
+            end
+
+            local arenaRating_2v2 = GetComparisonStatistic(370)
+            if arenaRating_2v2 == "--" then
+                arenaRating_2v2 = 0
+            end
+
+            scoreTable["arenaRating_2v2"] = arenaRating_2v2
+            scoreTable["arenaRating_3v3"] = arenaRating_3v3
+        end
+
+        if PVPInfo.db.profile.showKill then
+            -- Kills -- 击杀总数
+            local HonorableKills = GetComparisonStatistic(588)
+            if HonorableKills == "--" then
+                HonorableKills = 0
+            end
+
+            local ArenaKills = GetComparisonStatistic(1490)
+            if ArenaKills == "--" then
+                ArenaKills = 0
+            end
+
+            local BattlegroundKills = GetComparisonStatistic(1491)
+            if BattlegroundKills == "--" then
+                BattlegroundKills = 0
+            end
+
+            scoreTable["allKills"] = HonorableKills
+            scoreTable["arenaKills"] = ArenaKills
+            scoreTable["battlegroundKills"] = BattlegroundKills
+        end
+
+        if PVPInfo.db.profile.showBattleground then
+            -- Battleground -- 战场
+            local battlegroundSum = GetComparisonStatistic(839)
+            if battlegroundSum == "--" then
+                battlegroundSum = 0
+            end
+
+            local battlegroundWin = GetComparisonStatistic(840)
+            if battlegroundWin == "--" then
+                battlegroundWin = 0
+            end
+
+            local battlegroundLose = battlegroundSum - battlegroundWin
+            local battlgroundWinRate = 0
+            if battlegroundSum == 0 then
+                battlgroundWinRate = 0
+            else
+                battlgroundWinRate = (battlegroundWin / battlegroundSum) * 100
+            end
+
+            scoreTable["battlegroundSum"] = battlegroundSum
+            scoreTable["battlegroundWin"] = battlegroundWin
+            scoreTable["battlegroundLose"] = battlegroundLose
+            scoreTable["battlgroundWinRate"] = battlgroundWinRate
+        end
 
         ClearAchievementComparisonUnit()
         --ClearInspectPlayer()
@@ -306,80 +374,56 @@ function CalculateScore()
     end)
 end
 
-function DisplayStarOfTargetOnNameBar()
-    local pvpinfo = CalculateScore()
-    if pvpinfo ~= nil then
-        TatgetPVPInfo = TargetFrame:CreateFontString("TatgetPVPInfo")
-        TatgetPVPInfo:SetFont("Fonts\\ARKai_T.TTF", 13, 'OUTLINE')
-        TatgetPVPInfo:SetText(pvpinfo["pvpStar"])
-        TatgetPVPInfo:SetPoint("TOPLEFT", TargetFrame, "LEFT", 7, 45)
+function DisplayStarOnNameBar()
+    local pvpinfo = scoreTable
+    if pvpinfo == nil then
+        return
     end
+    TatgetPVPInfo = TargetFrame:CreateFontString("TatgetPVPInfo")
+    TatgetPVPInfo:SetFont("Fonts\\ARKai_T.TTF", 13, 'OUTLINE')
+    TatgetPVPInfo:SetText(pvpinfo["pvpStar"])
+    TatgetPVPInfo:SetPoint("TOPLEFT", TargetFrame, "LEFT", 7, 45)
 end
 
-function DisplayInformationOfTargetInMessage(channel)
-    local pvpinfo = CalculateScore()
+function DisplayScoreInMessage(sendMsgWay, channel)
+    local pvpinfo = scoreTable
+    if pvpinfo == nil then
+        return
+    end
     local separator = "  "
 
-    SendChatMessage(appName .. ": " .. pvpinfo["unitName"] .. "-" .. pvpinfo["unitRealName"] .. separator .. L["textLevel"] .. "(" .. pvpinfo["unitLevel"] .. ")" .. separator .. pvpinfo["unitRace"] .. separator .. pvpinfo["unitClass"], channel)
+    sendMsgWay(appName .. ": " .. pvpinfo["unitName"] .. "-" .. pvpinfo["unitRealName"] .. separator .. L["textLevel"] .. "(" .. pvpinfo["unitLevel"] .. ")" .. separator .. pvpinfo["unitRace"] .. separator .. pvpinfo["unitClass"], channel)
     if PVPInfo.db.profile.showDuel then
-        SendChatMessage(L["textDule"] .. " = " .. L["textDuelWinLose"] .. ": " .. pvpinfo["duelWin"] .. "/" .. pvpinfo["duelLose"] .. separator .. L["textDuelWinRate"] .. ": " .. string.format("%.1f", pvpinfo["duelWinRate"] * 100), channel)
-        SendChatMessage(L["textAllKills"] .. ": " .. pvpinfo["allKills"], channel)
+        sendMsgWay(L["textDule"] .. " = " .. L["textDuelWinLose"] .. ": " .. pvpinfo["duelWin"] .. "/" .. pvpinfo["duelLose"] .. separator .. L["textDuelWinRate"] .. ": " .. pvpinfo["duelWinRate"], channel)
+    end
+    if PVPInfo.db.profile.showHighArenaLevel then
+        sendMsgWay(L["highestArenaRating"] .. " 2v2:" .. pvpinfo["arenaRating_2v2"] .. "  3v3:" .. pvpinfo["arenaRating_3v3"], channel)
     end
     if PVPInfo.db.profile.showArena then
-        SendChatMessage(L["textArena"] .. " = " .. L["textArenaWinLose"] .. ": " .. pvpinfo["arenaWin"] .. "/" .. pvpinfo["arenaLose"] .. separator .. L["textArenaWinRate"] .. ": " .. string.format("%.1f", pvpinfo["arenaWinRate"] * 100), channel)
-        SendChatMessage(L["highestArenaRating"] .. " 2v2:" .. pvpinfo["arenaRating_2v2"] .. "  3v3:" .. pvpinfo["arenaRating_3v3"], channel)
+        sendMsgWay(L["textArena"] .. " = " .. L["textArenaWinLose"] .. ": " .. pvpinfo["arenaWin"] .. "/" .. pvpinfo["arenaLose"] .. separator .. L["textArenaWinRate"] .. ": " .. pvpinfo["arenaWinRate"], channel)
     end
     if PVPInfo.db.profile.showRatingBattleground then
-        SendChatMessage(L["textRatingBattleground"] .. " = " .. L["textRatingBattlegroundWinLose"] .. ": " .. pvpinfo["ratingBattlegroundWin"] .. "/" .. pvpinfo["ratingBattlegroundLose"] .. separator .. L["textRatingBattlegroundWinRate"] .. ": " .. string.format("%.1f", pvpinfo["ratingBattlegroundWinRate"] * 100), channel)
+        sendMsgWay(L["textRatingBattleground"] .. " = " .. L["textRatingBattlegroundWinLose"] .. ": " .. pvpinfo["ratingBattlegroundWin"] .. "/" .. pvpinfo["ratingBattlegroundLose"] .. separator .. L["textRatingBattlegroundWinRate"] .. ": " .. pvpinfo["ratingBattlegroundWinRate"], channel)
     end
-    SendChatMessage(L["pvpScore"] .. " <" .. string.format("%.1f", pvpinfo["totalScore"]) .. "> " .. pvpinfo["pvpStar"], channel)
+    if PVPInfo.db.profile.showBattleground then
+        sendMsgWay(L["textBattleground"] .. " = " .. L["textBattlegroundWinLose"] .. ": " .. pvpinfo["battlegroundWin"] .. "/" .. pvpinfo["battlegroundLose"] .. separator .. L["textBattlegroundWinRate"] .. ": " .. pvpinfo["battlegroundWinRate"], channel)
+    end
+    if PVPInfo.db.profile.showKill then
+        sendMsgWay(L["textAllKills"] .. ": " .. pvpinfo["allKills"] .. separator .. L["textArenaKills"] .. ": " .. pvpinfo["arenaKills"] .. separator .. L["textBattlegroundKills"] .. ": " .. pvpinfo["battlegroundKills"], channel)
+    end
+    sendMsgWay(L["pvpScore"] .. " <" .. pvpinfo["totalScore"] .. "> " .. pvpinfo["pvpStar"], channel)
 end
 
 function PVPInfo:MessageToPrint()
-    local pvpinfo = CalculateScore()
-    local separator = "  "
-
-    print("PVPInfo: " .. pvpinfo["unitName"] .. "-" .. pvpinfo["unitRealName"] .. separator .. L["textLevel"] .. "(" .. pvpinfo["unitLevel"] .. ")" .. separator .. pvpinfo["unitRace"] .. separator .. pvpinfo["unitClass"])
-    if PVPInfo.db.profile.showDuel then
-        print(L["textDule"] .. " = " .. L["textDuelWinLose"] .. ": " .. pvpinfo["duelWin"] .. "/" .. pvpinfo["duelLose"] .. separator .. L["textDuelWinRate"] .. ": " .. string.format("%.1f", pvpinfo["duelWinRate"] * 100))
-        print(L["textAllKills"] .. ": " .. pvpinfo["allKills"])
-    end
-    if PVPInfo.db.profile.showArena then
-        print(L["textArena"] .. " = " .. L["textArenaWinLose"] .. ": " .. pvpinfo["arenaWin"] .. "/" .. pvpinfo["arenaLose"] .. separator .. L["textArenaWinRate"] .. ": " .. string.format("%.1f", pvpinfo["arenaWinRate"] * 100))
-        print(L["highestArenaRating"] .. " 2v2:" .. pvpinfo["arenaRating_2v2"] .. "  3v3:" .. pvpinfo["arenaRating_3v3"])
-    end
-    if PVPInfo.db.profile.showRatingBattleground then
-        print(L["textRatingBattleground"] .. " = " .. L["textRatingBattlegroundWinLose"] .. ": " .. pvpinfo["ratingBattlegroundWin"] .. "/" .. pvpinfo["ratingBattlegroundLose"] .. separator .. L["textRatingBattlegroundWinRate"] .. ": " .. string.format("%.1f", pvpinfo["ratingBattlegroundWinRate"] * 100))
-    end
-    print(L["pvpScore"] .. " <" .. string.format("%.1f", pvpinfo["totalScore"]) .. "> " .. pvpinfo["pvpStar"])
+    DisplayScoreInMessage(print, "")
 end
 
 function PVPInfo:MessageToSay()
-    local channel = ""
-    local input = ""
-    if input == "s" then
-        channel = "SAY"
-    end
-    if input == "e" then
-        channel = "EMOTE"
-    end
-    if input == "y" then
-        channel = "YELL"
-    end
-    if input == "p" then
-        channel = "PARTY"
-    end
-    if input == "r" then
-        channel = "RAID"
-    end
-    if input == "i" then
-        channel = "INSTANCE_CHAT"
-    end
-    if input == "g" then
-        channel = "GUILD"
-    end
+    DisplayScoreInMessage(SendChatMessage, "SAY")
+end
 
-    DisplayInformationOfTargetInMessage("SAY")
+function PVPInfo:MessageToRaid()
+    DisplayScoreInMessage(SendChatMessage, "RAID")
 end
 
 
