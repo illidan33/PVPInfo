@@ -42,6 +42,7 @@ local options = {
                 return PVPInfo.db.profile.showDuel
             end,
             set = function(info, value)
+                PVPInfo.db.profile.cache = {}
                 PVPInfo.db.profile.showDuel = value or nil
             end,
         },
@@ -53,6 +54,7 @@ local options = {
                 return PVPInfo.db.profile.showArena
             end,
             set = function(info, value)
+                PVPInfo.db.profile.cache = {}
                 PVPInfo.db.profile.showArena = value or nil
             end,
         },
@@ -64,6 +66,7 @@ local options = {
                 return PVPInfo.db.profile.showBattleground
             end,
             set = function(info, value)
+                PVPInfo.db.profile.cache = {}
                 PVPInfo.db.profile.showBattleground = value or nil
             end,
         },
@@ -75,6 +78,7 @@ local options = {
                 return PVPInfo.db.profile.showRatingBattleground
             end,
             set = function(info, value)
+                PVPInfo.db.profile.cache = {}
                 PVPInfo.db.profile.showRatingBattleground = value or nil
             end,
         },
@@ -86,6 +90,7 @@ local options = {
                 return PVPInfo.db.profile.showKill
             end,
             set = function(info, value)
+                PVPInfo.db.profile.cache = {}
                 PVPInfo.db.profile.showKill = value or nil
             end,
         },
@@ -97,6 +102,7 @@ local options = {
                 return PVPInfo.db.profile.showHighArenaLevel
             end,
             set = function(info, value)
+                PVPInfo.db.profile.cache = {}
                 PVPInfo.db.profile.showHighArenaLevel = value or nil
             end,
         },
@@ -118,7 +124,7 @@ local defaults = {
 function PVPInfo:OnInitialize()
     -- Called when the addon is loaded
     self.db = LibStub("AceDB-3.0"):New("PVPInfoDB", defaults, true)
-    LibStub("AceConfig-3.0"):RegisterOptionsTable(AppName, options)
+    LibStub("AceConfig-3.0"):RegisterOptionsTable(AppName, options, {"pi", "pvpinfo"})
     self.optionsFrame = AceConfigDialog:AddToBlizOptions(AppName, AppName)
 
     self:RegisterChatCommand("pi", "ChatCommand")
@@ -137,7 +143,7 @@ function PVPInfo:ZONE_CHANGED()
 end
 
 function PVPInfo:PLAYER_TARGET_CHANGED()
-    self:Print("PLAYER_TARGET_CHANGED")
+    --self:Print("PLAYER_TARGET_CHANGED")
 
     if TatgetPVPInfo then
         TatgetPVPInfo:Hide()
@@ -172,8 +178,26 @@ function PVPInfo:ShowConfig()
 end
 
 function PVPInfo:ChatCommand(input)
-    self:Print("ChatCommand:" .. input)
+    --self:Print("ChatCommand:" .. input)
+
     if input and input:trim() ~= "" then
+        if input == "config" then
+            AceConfigDialog:SetDefaultSize(AppName, 800, 600)
+            AceConfigDialog:Open(AppName)
+            return
+        end
+        if input == "cc" then
+            self.db.profile.cache = {}
+            return
+        end
+
+        if not UnitIsPlayer("target") then
+            return
+        end
+        if not UnitIsVisible("target") then
+            return
+        end
+
         if input == "s" then
             MessageChannel = "SAY"
         end
@@ -210,13 +234,22 @@ function PVPInfo:ChatCommand(input)
             SetAchievementComparisonUnit("target")
         end
     else
-        InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)
-        LibStub("AceConfigCmd-3.0"):HandleCommand("pi", AppName, input)
+        Print("|cff00ff00PVPInfo Help:|r")
+        Print("|cffffff00/pi|r - " .. L["default"])
+        Print("|cffffff00/pi s|r - " .. L["say"])
+        Print("|cffffff00/pi r|r - " .. L["emote"])
+        Print("|cffffff00/pi y|r - " .. L["yell"])
+        Print("|cffffff00/pi p|r - " .. L["party"])
+        Print("|cffffff00/pi r|r - " .. L["raid"])
+        Print("|cffffff00/pi i|r - " .. L["guild"])
+        Print("|cffffff00/pi g|r - " .. L["intanceChat"])
+        Print("|cffffff00/pi config|r - " .. L["config"])
+        Print("|cffffff00/pi cc|r - " .. L["clearCache"])
     end
 end
 
 function PVPInfo:INSPECT_ACHIEVEMENT_READY()
-    self:Print("INSPECT_ACHIEVEMENT_READY")
+    --self:Print("INSPECT_ACHIEVEMENT_READY")
 
     CalculateScore()
 
@@ -230,12 +263,19 @@ end
 
 -- functions
 function DisplayPVPInfo()
+    if not UnitIsPlayer("target") then
+        return
+    end
+    if not UnitIsVisible("target") then
+        return
+    end
+
     if PVPInfoType == "nameBar" then
         CreateTargetFrame()
     elseif PVPInfoType == "message" then
-        DisplayScoreInMessage(SendChatMessage, MessageChannel)
+        DisplayScoreInMessage(MessageChannel)
     else
-        DisplayScoreInMessage("print", "")
+        DisplayScoreInMessage("")
     end
 end
 
@@ -380,7 +420,8 @@ function CalculateScore()
     ScoreTable["totalScore"] = totalScore
     ScoreTable["pvpStar"] = pvpStar
 
-    local arenaRating_3v3, arenaRating_2v2
+    local arenaRating_3v3 = 0
+    local arenaRating_2v2 = 0
     if PVPInfo.db.profile.showHighArenaLevel then
         -- highArenaLeve -- 最高竞技场等级
         arenaRating_3v3 = GetComparisonStatistic(595)
@@ -395,14 +436,17 @@ function CalculateScore()
 
         ScoreTable["arenaRating_2v2"] = arenaRating_2v2
         ScoreTable["arenaRating_3v3"] = arenaRating_3v3
-        ScoreTable["battlegroundRating"] = ""
+        --ScoreTable["battlegroundRating"] = ""
 
-        local name, isFinish, time, earnBy = GetHighestBattlegroundLevel()
-        if isFinish == true then
-            ScoreTable["battlegroundRating"] = name .. ": " .. time .. "-" .. earnBy
-        end
+        --local name, isFinish, time, earnBy = GetHighestBattlegroundLevel()
+        --if isFinish == true then
+        --    ScoreTable["battlegroundRating"] = name .. ": " .. time .. "-" .. earnBy
+        --end
+        --print(ScoreTable["battlegroundRating"])
     end
-    local honorableKills, arenaKills, battlegroundKills
+    local honorableKills = 0
+    local arenaKills = 0
+    local battlegroundKills = 0
     if PVPInfo.db.profile.showKill then
         -- Kills -- 击杀总数
         honorableKills = GetComparisonStatistic(588)
@@ -426,7 +470,10 @@ function CalculateScore()
         ScoreTable["battlegroundKills"] = battlegroundKills
     end
 
-    local battlegroundSum, battlegroundWin, battlegroundLose, battlgroundWinRate
+    local battlegroundSum = 0
+    local battlegroundWin = 0
+    local battlegroundLose = 0
+    local battlgroundWinRate = 0
     if PVPInfo.db.profile.showBattleground then
         -- Battleground -- 战场
         battlegroundSum = GetComparisonStatistic(839)
@@ -500,32 +547,43 @@ function CalculateScore()
     CalculateWorking = nil
 end
 
-function DisplayScoreInMessage(sendMsgWay, channel)
+function DisplayScoreInMessage(channel)
+    --print("channel: " .. channel)
     local separator = "  "
+    local lineStart = "       "
 
-    if sendMsgWay == "print" then
-        sendMsgWay = PVPInfo:Print()
+    local sendMsgWay
+    if PVPInfoType == "print" then
+        sendMsgWay = print
+    elseif PVPInfoType == "message" then
+        sendMsgWay = SendChatMessage
+    else
+        sendMsgWay = print
     end
+    if channel == "" then
+        sendMsgWay = print
+    end
+
     sendMsgWay(AppName .. ": " .. ScoreTable["unitName"] .. "-" .. ScoreTable["unitRealName"] .. separator .. L["textLevel"] .. "(" .. ScoreTable["unitLevel"] .. ")" .. separator .. ScoreTable["unitRace"] .. separator .. ScoreTable["unitClass"], channel)
     if PVPInfo.db.profile.showDuel then
-        sendMsgWay(L["textDule"] .. " = " .. L["textDuelWinLose"] .. ": " .. ScoreTable["duelWin"] .. "/" .. ScoreTable["duelLose"] .. separator .. L["textDuelWinRate"] .. ": " .. ScoreTable["duelWinRate"] .. "%", channel)
+        sendMsgWay(lineStart .. L["textDule"] .. " = " .. L["textDuelWinLose"] .. ": " .. ScoreTable["duelWin"] .. "/" .. ScoreTable["duelLose"] .. separator .. L["textDuelWinRate"] .. ": " .. ScoreTable["duelWinRate"] .. "%", channel)
     end
     if PVPInfo.db.profile.showHighArenaLevel then
-        sendMsgWay(L["textHighestArenaRating"] .. " = " .. "2v2: " .. ScoreTable["arenaRating_2v2"] .. separator .. "3v3: " .. ScoreTable["arenaRating_3v3"] .. separator .. ScoreTable["battlegroundRating"], channel)
+        sendMsgWay(lineStart .. L["textHighestArenaRating"] .. " = " .. "2v2: " .. ScoreTable["arenaRating_2v2"] .. separator .. "3v3: " .. ScoreTable["arenaRating_3v3"], channel)
     end
     if PVPInfo.db.profile.showArena then
-        sendMsgWay(L["textArena"] .. " = " .. L["textArenaWinLose"] .. ": " .. ScoreTable["arenaWin"] .. "/" .. ScoreTable["arenaLose"] .. separator .. L["textArenaWinRate"] .. ": " .. ScoreTable["arenaWinRate"] .. "%", channel)
+        sendMsgWay(lineStart .. L["textArena"] .. " = " .. L["textArenaWinLose"] .. ": " .. ScoreTable["arenaWin"] .. "/" .. ScoreTable["arenaLose"] .. separator .. L["textArenaWinRate"] .. ": " .. ScoreTable["arenaWinRate"] .. "%", channel)
     end
     if PVPInfo.db.profile.showRatingBattleground then
-        sendMsgWay(L["textRatingBattleground"] .. " = " .. L["textRatingBattlegroundWinLose"] .. ": " .. ScoreTable["ratingBattlegroundWin"] .. "/" .. ScoreTable["ratingBattlegroundLose"] .. separator .. L["textRatingBattlegroundWinRate"] .. ": " .. ScoreTable["ratingBattlegroundWinRate"] .. "%", channel)
+        sendMsgWay(lineStart .. L["textRatingBattleground"] .. " = " .. L["textRatingBattlegroundWinLose"] .. ": " .. ScoreTable["ratingBattlegroundWin"] .. "/" .. ScoreTable["ratingBattlegroundLose"] .. separator .. L["textRatingBattlegroundWinRate"] .. ": " .. ScoreTable["ratingBattlegroundWinRate"] .. "%", channel)
     end
     if PVPInfo.db.profile.showBattleground then
-        sendMsgWay(L["textBattleground"] .. " = " .. L["textBattlegroundWinLose"] .. ": " .. ScoreTable["battlegroundWin"] .. "/" .. ScoreTable["battlegroundLose"] .. separator .. L["textBattlegroundWinRate"] .. ": " .. ScoreTable["battlegroundWinRate"], channel)
+        sendMsgWay(lineStart .. L["textBattleground"] .. " = " .. L["textBattlegroundWinLose"] .. ": " .. ScoreTable["battlegroundWin"] .. "/" .. ScoreTable["battlegroundLose"] .. separator .. L["textBattlegroundWinRate"] .. ": " .. ScoreTable["battlegroundWinRate"] .. "%", channel)
     end
     if PVPInfo.db.profile.showKill then
-        sendMsgWay(L["textHonorableKills"] .. ": " .. ScoreTable["honorableKills"] .. separator .. L["textAllKills"] .. ": " .. ScoreTable["allKills"] .. separator .. L["textArenaKills"] .. ": " .. ScoreTable["arenaKills"] .. separator .. L["textBattlegroundKills"] .. ": " .. ScoreTable["battlegroundKills"], channel)
+        sendMsgWay(lineStart .. L["textHonorableKills"] .. ": " .. ScoreTable["honorableKills"] .. separator .. L["textAllKills"] .. ": " .. ScoreTable["allKills"] .. separator .. L["textArenaKills"] .. ": " .. ScoreTable["arenaKills"] .. separator .. L["textBattlegroundKills"] .. ": " .. ScoreTable["battlegroundKills"], channel)
     end
-    sendMsgWay(L["pvpScore"] .. " <" .. ScoreTable["totalScore"] .. "> " .. ScoreTable["pvpStar"], channel)
+    sendMsgWay(lineStart .. L["pvpScore"] .. " <" .. ScoreTable["totalScore"] .. "> " .. ScoreTable["pvpStar"], channel)
 end
 
 function GetUnitFromCache(unitFlag)
@@ -555,14 +613,18 @@ end
 function GetHighestBattlegroundLevel()
     local levelSort = { 5356, 5342, 5355, 5354, 5353, 5338, 5352, 5351, 5350, 5349, 5348, 5347 };
     local len = table.getn(levelSort)
-    local j = 0
-    for j = 0, len do
+    for j = 1, len do
+        print(levelSort[j])
         local id, name, score, isFinish, month, day, year, desc, flag, img, rewardText, isGuild, wasEarnedByMe, earnBy = GetAchievementInfo(levelSort[j])
         if isFinish == true then
-            return name, isFinish, year .. month .. day, earnBy
+            return name, isFinish, year.. "Y" .. month .. "M" .. day .. "D", earnBy
         end
     end
-    return "", nil, "", ""
+    return "", false, "", ""
+end
+
+function Print(text)
+    PVPInfo:Print(text)
 end
 -- Bindings
 function PVPInfo_Print()
