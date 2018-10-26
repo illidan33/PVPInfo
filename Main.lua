@@ -1,3 +1,4 @@
+-- app global vars
 PVPInfo = LibStub("AceAddon-3.0"):NewAddon("PVPInfo", "AceConsole-3.0", "AceEvent-3.0")
 local L = LibStub("AceLocale-3.0"):GetLocale("PVPInfo")
 local AceConfigDialog = LibStub("AceConfigDialog-3.0")
@@ -227,6 +228,7 @@ function PVPInfo:INSPECT_ACHIEVEMENT_READY()
     ClearAchievementComparisonUnit()
 end
 
+-- functions
 function DisplayPVPInfo()
     if PVPInfoType == "nameBar" then
         CreateTargetFrame()
@@ -393,8 +395,13 @@ function CalculateScore()
 
         ScoreTable["arenaRating_2v2"] = arenaRating_2v2
         ScoreTable["arenaRating_3v3"] = arenaRating_3v3
-    end
+        ScoreTable["battlegroundRating"] = ""
 
+        local name, isFinish, time, earnBy = GetHighestBattlegroundLevel()
+        if isFinish == true then
+            ScoreTable["battlegroundRating"] = name .. ": " .. time .. "-" .. earnBy
+        end
+    end
     local honorableKills, arenaKills, battlegroundKills
     if PVPInfo.db.profile.showKill then
         -- Kills -- 击杀总数
@@ -504,7 +511,7 @@ function DisplayScoreInMessage(sendMsgWay, channel)
         sendMsgWay(L["textDule"] .. " = " .. L["textDuelWinLose"] .. ": " .. ScoreTable["duelWin"] .. "/" .. ScoreTable["duelLose"] .. separator .. L["textDuelWinRate"] .. ": " .. ScoreTable["duelWinRate"] .. "%", channel)
     end
     if PVPInfo.db.profile.showHighArenaLevel then
-        sendMsgWay(L["textHighestArenaRating"] .. " 2v2:" .. ScoreTable["arenaRating_2v2"] .. "  3v3:" .. ScoreTable["arenaRating_3v3"], channel)
+        sendMsgWay(L["textHighestArenaRating"] .. " = " .. "2v2: " .. ScoreTable["arenaRating_2v2"] .. separator .. "3v3: " .. ScoreTable["arenaRating_3v3"] .. separator .. ScoreTable["battlegroundRating"], channel)
     end
     if PVPInfo.db.profile.showArena then
         sendMsgWay(L["textArena"] .. " = " .. L["textArenaWinLose"] .. ": " .. ScoreTable["arenaWin"] .. "/" .. ScoreTable["arenaLose"] .. separator .. L["textArenaWinRate"] .. ": " .. ScoreTable["arenaWinRate"] .. "%", channel)
@@ -545,6 +552,18 @@ function CreateTargetFrame()
     TatgetPVPInfo:SetPoint("TOPLEFT", TargetFrame, "LEFT", 7, 45)
 end
 
+function GetHighestBattlegroundLevel()
+    local levelSort = { 5356, 5342, 5355, 5354, 5353, 5338, 5352, 5351, 5350, 5349, 5348, 5347 };
+    local len = table.getn(levelSort)
+    local j = 0
+    for j = 0, len do
+        local id, name, score, isFinish, month, day, year, desc, flag, img, rewardText, isGuild, wasEarnedByMe, earnBy = GetAchievementInfo(levelSort[j])
+        if isFinish == true then
+            return name, isFinish, year .. month .. day, earnBy
+        end
+    end
+    return "", nil, "", ""
+end
 -- Bindings
 function PVPInfo_Print()
     PVPInfoType = "message"

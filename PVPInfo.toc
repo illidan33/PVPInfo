@@ -3,6 +3,7 @@
 ## Title: PVP INFO
 ## Author: illidan33
 ## Notes: Displays everyone's PVP information.
+## Notes-zhCN: 显示玩家PVP数据
 ## SavedVariables: PVPInfoDB
 ## OptionalDeps: Ace3, LibStub
 ## X-Embeds: Ace3
