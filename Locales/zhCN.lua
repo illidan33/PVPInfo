@@ -3,7 +3,7 @@ local L = LibStub("AceLocale-3.0"):NewLocale("PVPInfo", "zhCN")
 if not L then return end
 
 -- config description
-L["execute"] = "恢复默认设置"
+L["clearCache"] = "清除缓存"
 L["showDuel"] = "决斗"
 L["toggleDuel"] = "开启/关闭决斗数据"
 L["showArena"] = "竞技场"
@@ -30,7 +30,7 @@ L["textBattlegroundWinRate"] = "胜率"
 L["textRatingBattleground"] = "评级战场"
 L["textRatingBattlegroundWinLose"] = "胜/败"
 L["textRatingBattlegroundWinRate"] = "胜率"
-L["highestArenaRating"] = "最高竞技场等级"
+L["textHighestArenaRating"] = "最高竞技场等级"
 L["textHonorableKills"] = "荣誉杀敌"
 L["textAllKills"] = "亲手杀敌"
 L["textArenaKills"] = "竞技场杀敌"
