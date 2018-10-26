@@ -1,6 +1,8 @@
 local L = LibStub("AceLocale-3.0"):NewLocale("PVPInfo", "zhCN")
 
-if not L then return end
+if not L then
+    return
+end
 
 -- config description
 L["clearCache"] = "清除缓存"
@@ -17,6 +19,7 @@ L["toggleKill"] = "开启/关闭杀敌数据"
 L["showHighArenaLevel"] = "最高竞技场等级"
 L["toggleHighArenaLevel"] = "开启/关闭最高竞技场等级"
 
+-- output description
 L["textLevel"] = "等级"
 L["textDule"] = "决斗"
 L["textDuelWinLose"] = "胜/败"
@@ -47,3 +50,13 @@ L["raid"] = "团队"
 L["guild"] = "公会"
 L["intance"] = "intance"
 L["clearCache"] = "重置缓存"
+
+-- binding keys
+L["textBindingPrint"] = "白字显示"
+L["textBindingSay"] = "说"
+L["textBindingEmote"] = "表情"
+L["textBindingYell"] = "大喊"
+L["textBindingParty"] = "队伍"
+L["textBindingRaid"] = "团队"
+L["textBindingGuild"] = "公会"
+L["textBindingInstanceChat"] = "密语"

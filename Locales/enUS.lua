@@ -45,3 +45,13 @@ L["raid"] = "send message to channel Raid"
 L["guild"] = "send message to channel Guild"
 L["intance"] = "send message to channel Intance"
 L["clearCache"] = "clear cache"
+
+-- binding keys
+L["textBindingPrint"] = "Print"
+L["textBindingSay"] = "Say"
+L["textBindingEmote"] = "Emote"
+L["textBindingYell"] = "Yell"
+L["textBindingParty"] = "Party"
+L["textBindingRaid"] = "Raid"
+L["textBindingGuild"] = "Guild"
+L["textBindingInstanceChat"] = "Instance Chat"

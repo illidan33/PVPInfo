@@ -8,6 +8,18 @@ local PVPInfoType
 local MessageChannel = ""
 local TatgetPVPInfo
 
+-- The header for PVPInfo key bindings
+BINDING_HEADER_PVPInfo = "PVPInfo";
+BINDING_NAME_PVPINFO_PRINT = L["textBindingPrint"]
+BINDING_NAME_PVPINFO_SAY = L["textBindingSay"]
+BINDING_NAME_PVPINFO_EMOTE = L["textBindingEmote"]
+BINDING_NAME_PVPINFO_YELL = L["textBindingYell"]
+BINDING_NAME_PVPINFO_PARTY = L["textBindingParty"]
+BINDING_NAME_PVPINFO_RAID = L["textBindingRaid"]
+BINDING_NAME_PVPINFO_GUILD = L["textBindingGuild"]
+BINDING_NAME_PVPINFO_INSTANCE_CHAT = L["textBindingInstanceChat"]
+
+-- default config
 local options = {
     name = "|cffDDA0DDPVPInfo|r",
     handler = PVPInfo,
@@ -138,7 +150,19 @@ function PVPInfo:PLAYER_TARGET_CHANGED()
         return
     end
 
-    DisplayStarOnNameBar()
+    ScoreTable["unitName"], ScoreTable["unitRealName"] = UnitName("target")
+    if not ScoreTable["unitRealName"] then
+        ScoreTable["unitRealName"] = GetRealmName()
+    end
+
+    PVPInfoType = "nameBar"
+    local unitInfo = GetUnitFromCache(ScoreTable["unitName"] .. "-" .. ScoreTable["unitRealName"])
+    if unitInfo then
+        ScoreTable = unitInfo
+        DisplayPVPInfo()
+    else
+        SetAchievementComparisonUnit("target")
+    end
 end
 
 function PVPInfo:ShowConfig()
@@ -147,7 +171,7 @@ function PVPInfo:ShowConfig()
 end
 
 function PVPInfo:ChatCommand(input)
-    print("ChatCommand:" .. input)
+    self:Print("ChatCommand:" .. input)
     if input and input:trim() ~= "" then
         if input == "s" then
             MessageChannel = "SAY"
@@ -180,6 +204,7 @@ function PVPInfo:ChatCommand(input)
         local unitInfo = GetUnitFromCache(ScoreTable["unitName"] .. "-" .. ScoreTable["unitRealName"])
         if unitInfo then
             ScoreTable = unitInfo
+            DisplayPVPInfo()
         else
             SetAchievementComparisonUnit("target")
         end
@@ -194,18 +219,22 @@ function PVPInfo:INSPECT_ACHIEVEMENT_READY()
 
     CalculateScore()
 
-    if PVPInfoType == "nameBar" then
-        CreateTargetFrame()
-    elseif PVPInfoType == "message" then
-        DisplayScoreInMessage(SendChatMessage, MessageChannel)
-    else
-        DisplayScoreInMessage(print, "")
-    end
+    DisplayPVPInfo()
 
     -- clear
     PVPInfoType = ""
     MessageChannel = ""
     ClearAchievementComparisonUnit()
+end
+
+function DisplayPVPInfo()
+    if PVPInfoType == "nameBar" then
+        CreateTargetFrame()
+    elseif PVPInfoType == "message" then
+        DisplayScoreInMessage(SendChatMessage, MessageChannel)
+    else
+        DisplayScoreInMessage("print", "")
+    end
 end
 
 function CalculateScore()
@@ -464,25 +493,12 @@ function CalculateScore()
     CalculateWorking = nil
 end
 
-function DisplayStarOnNameBar()
-    ScoreTable["unitName"], ScoreTable["unitRealName"] = UnitName("target")
-    if not ScoreTable["unitRealName"] then
-        ScoreTable["unitRealName"] = GetRealmName()
-    end
-
-    PVPInfoType = "nameBar"
-    local unitInfo = GetUnitFromCache(ScoreTable["unitName"] .. "-" .. ScoreTable["unitRealName"])
-    if unitInfo then
-        ScoreTable = unitInfo
-        CreateTargetFrame()
-    else
-        SetAchievementComparisonUnit("target")
-    end
-end
-
 function DisplayScoreInMessage(sendMsgWay, channel)
     local separator = "  "
 
+    if sendMsgWay == "print" then
+        sendMsgWay = PVPInfo:Print()
+    end
     sendMsgWay(AppName .. ": " .. ScoreTable["unitName"] .. "-" .. ScoreTable["unitRealName"] .. separator .. L["textLevel"] .. "(" .. ScoreTable["unitLevel"] .. ")" .. separator .. ScoreTable["unitRace"] .. separator .. ScoreTable["unitClass"], channel)
     if PVPInfo.db.profile.showDuel then
         sendMsgWay(L["textDule"] .. " = " .. L["textDuelWinLose"] .. ": " .. ScoreTable["duelWin"] .. "/" .. ScoreTable["duelLose"] .. separator .. L["textDuelWinRate"] .. ": " .. ScoreTable["duelWinRate"] .. "%", channel)
@@ -527,4 +543,46 @@ function CreateTargetFrame()
     TatgetPVPInfo:SetFont("Fonts\\ARKai_T.TTF", 13, 'OUTLINE')
     TatgetPVPInfo:SetText(ScoreTable["pvpStar"])
     TatgetPVPInfo:SetPoint("TOPLEFT", TargetFrame, "LEFT", 7, 45)
+end
+
+-- Bindings
+function PVPInfo_Print()
+    PVPInfoType = "message"
+    MessageChannel = ""
+    DisplayPVPInfo()
+end
+function PVPInfo_Say()
+    PVPInfoType = "message"
+    MessageChannel = "SAY"
+    DisplayPVPInfo()
+end
+function PVPInfo_Emote()
+    PVPInfoType = "message"
+    MessageChannel = "EMOTE"
+    DisplayPVPInfo()
+end
+function PVPInfo_Yell()
+    PVPInfoType = "message"
+    MessageChannel = "YELL"
+    DisplayPVPInfo()
+end
+function PVPInfo_Party()
+    PVPInfoType = "message"
+    MessageChannel = "PARTY"
+    DisplayPVPInfo()
+end
+function PVPInfo_Raid()
+    PVPInfoType = "message"
+    MessageChannel = "RAID"
+    DisplayPVPInfo()
+end
+function PVPInfo_Instance_Chat()
+    PVPInfoType = "message"
+    MessageChannel = "INSTANCE_CHAT"
+    DisplayPVPInfo()
+end
+function PVPInfo_Guild()
+    PVPInfoType = "message"
+    MessageChannel = "GUILD"
+    DisplayPVPInfo()
 end

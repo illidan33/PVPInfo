@@ -1,0 +1,26 @@
+<Bindings>
+	<Binding name="PVPINFO_PRINT" header="PVPInfo" category="ADDONS">
+		PVPInfo_Print()
+	</Binding>
+	<Binding name="PVPINFO_SAY" header="PVPInfo" category="ADDONS">
+		PVPInfo_Say()
+	</Binding>
+	<Binding name="PVPINFO_EMOTE" header="PVPInfo" category="ADDONS">
+		PVPInfo_Emote()
+	</Binding>
+	<Binding name="PVPINFO_YELL" header="PVPInfo" category="ADDONS">
+		PVPInfo_Yell()
+	</Binding>
+	<Binding name="PVPINFO_PARTY" header="PVPInfo" category="ADDONS">
+		PVPInfo_Party()
+	</Binding>
+	<Binding name="PVPINFO_RAID" header="PVPInfo" category="ADDONS">
+		PVPInfo_Raid()
+	</Binding>
+	<Binding name="PVPINFO_INSTANCE_CHAT" header="PVPInfo" category="ADDONS">
+		PVPInfo_Instance_Chat()
+	</Binding>
+	<Binding name="PVPINFO_GUILD" header="PVPInfo" category="ADDONS">
+		PVPInfo_Guild()
+	</Binding>
+</Bindings>
