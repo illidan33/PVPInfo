@@ -14,4 +14,8 @@ A tool for displaying World of Warcraft player PVP information.
 - 确保根文件名是“PVPInfo”。
 
 pictures--效果图片：
+
 ![img](https://github.com/illidan33/files/blob/master/print_en.jpg)
+![img](https://github.com/illidan33/files/blob/master/print_zh.jpg)
+![img](https://github.com/illidan33/files/blob/master/console_zh%20.jpg)
+![img](https://github.com/illidan33/files/blob/master/keySetting_en.jpg)
