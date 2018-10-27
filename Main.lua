@@ -181,7 +181,7 @@ function PVPInfo:ChatCommand(input)
     --self:Print("ChatCommand:" .. input)
 
     if input and input:trim() ~= "" then
-        if input == "config" then
+        if input == "c" then
             AceConfigDialog:SetDefaultSize(AppName, 800, 600)
             AceConfigDialog:Open(AppName)
             return
@@ -237,13 +237,13 @@ function PVPInfo:ChatCommand(input)
         Print("|cff00ff00PVPInfo Help:|r")
         Print("|cffffff00/pi|r - " .. L["default"])
         Print("|cffffff00/pi s|r - " .. L["say"])
-        Print("|cffffff00/pi r|r - " .. L["emote"])
+        Print("|cffffff00/pi e|r - " .. L["emote"])
         Print("|cffffff00/pi y|r - " .. L["yell"])
         Print("|cffffff00/pi p|r - " .. L["party"])
         Print("|cffffff00/pi r|r - " .. L["raid"])
-        Print("|cffffff00/pi i|r - " .. L["guild"])
-        Print("|cffffff00/pi g|r - " .. L["intanceChat"])
-        Print("|cffffff00/pi config|r - " .. L["config"])
+        Print("|cffffff00/pi g|r - " .. L["guild"])
+        Print("|cffffff00/pi i|r - " .. L["intanceChat"])
+        Print("|cffffff00/pi c|r - " .. L["config"])
         Print("|cffffff00/pi cc|r - " .. L["clearCache"])
     end
 end
