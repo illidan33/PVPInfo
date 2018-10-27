@@ -1,6 +1,6 @@
 ## Interface: 80000
 ## Version: 1.0.0
-## Title: PVP INFO
+## Title: PVPINFO
 ## Author: illidan33
 ## Notes: Displays everyone's PVP information.
 ## Notes-zhCN: 显示玩家PVP数据
