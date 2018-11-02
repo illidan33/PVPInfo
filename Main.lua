@@ -133,7 +133,7 @@ end
 
 function PVPInfo:OnEnable()
     -- Called when the addon is enabled
-    self:RegisterEvent("ZONE_CHANGED")
+    --self:RegisterEvent("ZONE_CHANGED")
     self:RegisterEvent("PLAYER_TARGET_CHANGED")
     self:RegisterEvent("INSPECT_ACHIEVEMENT_READY")
 end
